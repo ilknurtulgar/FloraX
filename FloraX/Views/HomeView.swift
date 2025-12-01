@@ -9,45 +9,73 @@ import SwiftUI
 import PhotosUI
 
 struct HomeView: View {
+    @StateObject var viewModel = PlantViewModel()
     @State private var selectedItem: PhotosPickerItem? = nil
-    @State private var selectedImage: UIImage? = nil
+    @State private var goToResult = false
+
     
     var body: some View {
-        VStack(spacing: 20) {
-            if let image = selectedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 300)
-            } else {
-                Rectangle()
-                    .fill(Color.green.opacity(0.1))
-                    .frame(height: 300)
-                    .overlay(Text("Fotoğraf seç"))
+        NavigationView{
+            VStack(spacing: 20) {
+                ZStack{
+                    if let image = viewModel.selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .cornerRadius(20)
+                            .shadow(radius: 3)
+                            .frame(height: 300)
+                    } else {
+                        Rectangle()
+                            .fill(Color.green.opacity(0.1))
+                            .frame(height: 300)
+                            .overlay(Text("Henüz Resim Yok"))
+                            .cornerRadius(20)
+                    }
+                }
+                
+                PhotosPicker(
+                    selection: $selectedItem,
+                    matching: .images,
+                    photoLibrary: .shared()
+                ) {
+                    Text("Galeriden Seç")
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: 150)
+                        .background(Color.green)
+                        .cornerRadius(15)
+                }
+                
+                Button(action: {
+                    viewModel.testPrediction()
+                    goToResult = true
+                }){
+                    Text("Analiz Et")
+                        .foregroundColor(.green)
+                        .padding()
+                        .frame(maxWidth: 150)
+                }
+                
+                if let prediction = viewModel.prediction{
+                    NavigationLink(destination: ResultView(plant: prediction),
+                                  isActive: $goToResult,
+                                   label: {EmptyView()}
+                    )
+                }
+                Spacer()
             }
-            
-            PhotosPicker(
-                selection: $selectedItem,
-                matching: .images,
-                photoLibrary: .shared()
-            ) {
-                Text("Gallery Seç")
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.green)
-                    .cornerRadius(15)
-            }
+            .navigationTitle("FloraX")
+            .padding()
             .onChange(of: selectedItem) { newItem in
                 Task {
                     if let data = try? await newItem?.loadTransferable(type: Data.self),
                        let uiImage = UIImage(data: data) {
-                        selectedImage = uiImage
+                        viewModel.selectedImage = uiImage
                     }
                 }
             }
         }
-        .padding()
     }
 }
 
