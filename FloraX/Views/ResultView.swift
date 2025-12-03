@@ -12,6 +12,7 @@ struct ResultView: View {
     
     var body: some View {
         VStack(spacing: 10){
+            
             Image(uiImage: plant.image)
                 .resizable()
                 .scaledToFit()

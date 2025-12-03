@@ -48,7 +48,7 @@ struct HomeView: View {
                 }
                 
                 Button(action: {
-                    viewModel.testPrediction()
+                    viewModel.predictWithVision()
                     goToResult = true
                 }){
                     Text("Analiz Et")
